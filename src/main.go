@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/jpeg"
 	"os"
+	"sync"
 )
 
 var exampleImg string = "./images/parisz.jpg"
@@ -53,14 +54,24 @@ func getAllPixelValues() {
 	// get the image
 	img, _, err := image.Decode(imgfile)
 
+	var wg sync.WaitGroup
+
 	for y := 0; y < height; y++ {
-		go printPixelsFor(img, y, width)
+		fmt.Println("Main: Starting worker", y)
+		wg.Add(1)
+		go printPixelsFor(&wg, img, y, width)
 	}
+
+	wg.Wait()
 }
 
-func printPixelsFor(img image.Image, y int, width int) {
+func printPixelsFor(wg *sync.WaitGroup, img image.Image, y int, width int) {
+	defer wg.Done()
 	for x := 0; x < width; x++ {
 		r, g, b, a := img.At(x, y).RGBA()
 		fmt.Printf("[X : %d Y : %v] R : %v, G : %v, B : %v, A : %v  \n", x, y, r, g, b, a)
 	}
+
+	fmt.Println("DONE!")
+	os.Exit(1)
 }
