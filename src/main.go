@@ -16,10 +16,14 @@ func init() {
 }
 
 func main() {
+	getAllPixelValues()
+}
+
+func getAllPixelValues() {
 	imgfile, err := os.Open(exampleImg)
 
 	if err != nil {
-		fmt.Println("exampleImg file not found!")
+		fmt.Printf("location '%v' not found!", exampleImg)
 		os.Exit(1)
 	}
 
@@ -49,11 +53,14 @@ func main() {
 	// get the image
 	img, _, err := image.Decode(imgfile)
 
-	fmt.Println(img.At(10, 10).RGBA())
 	for y := 0; y < height; y++ {
-		for x := 0; x < width; x++ {
-			r, g, b, a := img.At(x, y).RGBA()
-			fmt.Printf("[X : %d Y : %v] R : %v, G : %v, B : %v, A : %v  \n", x, y, r, g, b, a)
-		}
+		go printPixelsFor(img, y, width)
+	}
+}
+
+func printPixelsFor(img image.Image, y int, width int) {
+	for x := 0; x < width; x++ {
+		r, g, b, a := img.At(x, y).RGBA()
+		fmt.Printf("[X : %d Y : %v] R : %v, G : %v, B : %v, A : %v  \n", x, y, r, g, b, a)
 	}
 }
