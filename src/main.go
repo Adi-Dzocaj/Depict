@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"image"
+	"image/color"
 	"image/draw"
 	"image/jpeg"
+	"image/png"
 	"os"
 	"time"
 )
@@ -46,21 +48,26 @@ func getAllPixelValues() {
 	img, _, err := image.Decode(imgfile)
 
 	start := time.Now()
-	getImageCopyOf(img, false, height, width)
+	createImageCopyOf(img, false, height, width)
 
 	duration := time.Since(start)
 	fmt.Println("Operation took:", duration)
 }
 
-func getImageCopyOf(img image.Image, imgMethod bool, height int, width int) {
+func createImageCopyOf(img image.Image, imgMethod bool, height int, width int) {
+	copyImg := getImageBuilderTemplate(height, width)
+
 	// use img.At() method of extracting RGB from pixels in given image
 	if imgMethod {
 		for y := 0; y < height; y++ {
 			for x := 0; x < width; x++ {
 				r, g, b, _ := img.At(x, y).RGBA()
-				_ = uint8(r >> 8)
-				_ = uint8(g >> 8)
-				_ = uint8(b >> 8)
+				r8 := uint8(r >> 8)
+				g8 := uint8(g >> 8)
+				b8 := uint8(b >> 8)
+
+				currentPixelColor := color.RGBA{r8, g8, b8, 0xff}
+				copyImg.Set(x, y, currentPixelColor)
 			}
 		}
 
@@ -73,10 +80,29 @@ func getImageCopyOf(img image.Image, imgMethod bool, height int, width int) {
 			for x := 0; x < width; x++ {
 				index := (y*width + x) * 4
 				pix := rgba.Pix[index : index+4]
-				_ = pix[0]
-				_ = pix[1]
-				_ = pix[2]
+				r8 := pix[0]
+				g8 := pix[1]
+				b8 := pix[2]
+
+				currentPixelColor := color.RGBA{r8, g8, b8, 0xff}
+				copyImg.Set(x, y, currentPixelColor)
 			}
 		}
 	}
+
+	createPNGEncodedImageFrom(copyImg)
+}
+
+// Return clean image template of specified size.
+// Used to manipulate pixels on.
+func getImageBuilderTemplate(height int, width int) *image.RGBA {
+	upLeft := image.Point{0, 0}
+	downRight := image.Point{width, height}
+	return image.NewRGBA(image.Rectangle{upLeft, downRight})
+}
+
+// Create and save .png image from specified *image.RGBA.
+func createPNGEncodedImageFrom(copyImg *image.RGBA) {
+	f, _ := os.Create("images/copyImg.png")
+	png.Encode(f, copyImg)
 }
