@@ -11,7 +11,8 @@ import (
 	"time"
 )
 
-var exampleImg string = "./images/parisz.jpg"
+var inputImg string = "./images/parisz.jpg"
+var outputImg string = "images/copyimg.png"
 
 func init() {
 	image.RegisterFormat("jpeg", "jpeg", jpeg.Decode, jpeg.DecodeConfig)
@@ -22,9 +23,9 @@ func main() {
 }
 
 func getAllPixelValues() {
-	imgfile, err := os.Open(exampleImg)
+	imgfile, err := os.Open(inputImg)
 	if err != nil {
-		fmt.Printf("location '%v' not found!", exampleImg)
+		fmt.Printf("location '%v' not found!", inputImg)
 		os.Exit(1)
 	}
 	defer imgfile.Close()
@@ -103,6 +104,12 @@ func getImageBuilderTemplate(height int, width int) *image.RGBA {
 
 // Create and save .png image from specified *image.RGBA.
 func createPNGEncodedImageFrom(copyImg *image.RGBA) {
-	f, _ := os.Create("images/copyImg.png")
+	f, err := os.Create("images/copyImg.png")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("Successfully copied from '%v' to '%v'.\n", inputImg, outputImg)
 	png.Encode(f, copyImg)
 }
